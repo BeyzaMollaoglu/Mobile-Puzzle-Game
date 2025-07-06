@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class PuzzleSpawner : MonoBehaviour
@@ -7,18 +8,20 @@ public class PuzzleSpawner : MonoBehaviour
     public GameObject piecePrefab;
     public Transform puzzleGrid;
 
-    [Header("Level Ayarları")]
-    public string levelName = "level1"; // level1, level2, vs.
-
-    void Start()
+    IEnumerator Start()
     {
-        LoadLevel(levelName);
+        // UI yerleşimi tamamlanana kadar bekle
+        yield return new WaitForEndOfFrame();
+
+        // Seçilen level'e göre yükleme yap
+        LoadLevel(LevelData.selectedLevel);
     }
 
     public void LoadLevel(string name)
     {
         ClearExistingPieces();
 
+        // Sprite'ları Resources klasöründen yükle
         Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle1/" + name);
 
         if (sprites.Length == 0)
@@ -30,6 +33,7 @@ public class PuzzleSpawner : MonoBehaviour
         List<Sprite> shuffled = new List<Sprite>(sprites);
         Shuffle(shuffled);
 
+        // Puzzle parçalarını oluştur
         for (int i = 0; i < shuffled.Count; i++)
         {
             GameObject piece = Instantiate(piecePrefab, puzzleGrid);
@@ -41,6 +45,9 @@ public class PuzzleSpawner : MonoBehaviour
         }
 
         PuzzleManager.Instance.totalPieces = sprites.Length;
+
+        // Grid boyutunu ayarla (taşmaları engellemek için)
+        AdjustGridCellSize(sprites.Length);
     }
 
     void Shuffle(List<Sprite> list)
@@ -62,13 +69,25 @@ public class PuzzleSpawner : MonoBehaviour
         }
     }
 
-    public class LevelController : MonoBehaviour
+    void AdjustGridCellSize(int pieceCount)
     {
-        public PuzzleSpawner spawner;
+        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(pieceCount)); // 3x3, 4x4, vs.
 
-        public void LoadLevel2()
-        {
-            spawner.LoadLevel("level2");
-        }
+        RectTransform gridRect = puzzleGrid.GetComponent<RectTransform>();
+        GridLayoutGroup layout = puzzleGrid.GetComponent<GridLayoutGroup>();
+
+        float totalPaddingX = layout.padding.left + layout.padding.right;
+        float totalPaddingY = layout.padding.top + layout.padding.bottom;
+
+        float totalSpacingX = layout.spacing.x * (gridSize - 1);
+        float totalSpacingY = layout.spacing.y * (gridSize - 1);
+
+        float availableWidth = gridRect.rect.width - totalPaddingX - totalSpacingX;
+        float availableHeight = gridRect.rect.height - totalPaddingY - totalSpacingY;
+
+        float cellWidth = availableWidth / gridSize;
+        float cellHeight = availableHeight / gridSize;
+
+        layout.cellSize = new Vector2(cellWidth, cellHeight);
     }
 }

@@ -7,4 +7,9 @@ public class MainMenu : MonoBehaviour
     {
         SceneManager.LoadScene("PuzzleScene");
     }
+
+    public void LevelButton()
+    {
+        SceneManager.LoadScene("LevelScene");
+    }
 }

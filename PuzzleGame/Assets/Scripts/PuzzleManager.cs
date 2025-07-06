@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PuzzleManager : MonoBehaviour
 {
@@ -22,5 +23,9 @@ public class PuzzleManager : MonoBehaviour
             Debug.Log("🎉 Puzzle Tamamlandı!");
             // Buraya oyun kazanma ekranı veya sahne geçişi ekleyebilirsin
         }
+    }
+    public void GoBack()
+    {
+        SceneManager.LoadScene("MainScene");
     }
 }
