@@ -22,7 +22,7 @@ public class PuzzleSpawner : MonoBehaviour
         ClearExistingPieces();
 
         // Sprite'ları Resources klasöründen yükle
-        Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle1/" + name);
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle/" + name);
 
         if (sprites.Length == 0)
         {

@@ -2,56 +2,63 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class PuzzlePiece : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
 {
     public int correctIndex;
     public int currentIndex;
     public Image image;
 
-    private Transform parent;
-    private Vector3 originalPos;
+    private static PuzzlePiece selectedPiece = null;
 
     void Awake()
     {
         image = GetComponent<Image>();
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        originalPos = transform.position;
-        parent = transform.parent;
-        transform.SetParent(parent.parent);
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        transform.position = Input.mousePosition;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        GameObject target = eventData.pointerEnter;
-
-        if (target != null && target.GetComponent<PuzzlePiece>() != null)
+        if (selectedPiece == null)
         {
-            PuzzlePiece other = target.GetComponent<PuzzlePiece>();
-
-            Sprite tempSprite = other.image.sprite;
-            int tempCorrectIndex = other.correctIndex;
-            int tempCurrentIndex = other.currentIndex;
-
-            other.image.sprite = image.sprite;
-            other.correctIndex = this.correctIndex;
-            other.currentIndex = this.currentIndex;
-
-            image.sprite = tempSprite;
-            correctIndex = tempCorrectIndex;
-            currentIndex = tempCurrentIndex;
+            // İlk seçilen parça
+            selectedPiece = this;
+            image.color = Color.yellow;
         }
+        else if (selectedPiece == this)
+        {
+            // Aynı parçaya iki kez tıklandı → seçimi iptal et
+            image.color = Color.white;
+            selectedPiece = null;
+        }
+        else
+        {
+            // İkinci parça seçildi → takas yap
+            SwapWith(selectedPiece);
+            image.color = Color.white;
+            selectedPiece.image.color = Color.white;
+            selectedPiece = null;
 
-        transform.SetParent(parent);
-        transform.position = originalPos;
+            // Kontrol et
+            PuzzleManager.Instance.CheckWin();
+        }
+    }
 
-        PuzzleManager.Instance.CheckWin();
+    void SwapWith(PuzzlePiece other)
+    {
+        // Sprite takası
+        Sprite tempSprite = image.sprite;
+        image.sprite = other.image.sprite;
+        other.image.sprite = tempSprite;
+
+        // ✅ currentIndex takası
+        int temp = currentIndex;
+        currentIndex = other.currentIndex;
+        other.currentIndex = temp;
+
+        // ❌ correctIndex değişmez!
+    }
+
+    public bool IsInCorrectPosition()
+    {
+        return correctIndex == currentIndex;
     }
 }
