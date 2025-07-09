@@ -4,11 +4,11 @@ using UnityEngine.EventSystems;
 
 public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
 {
-    public int correctIndex;
-    public int currentIndex;
-    public Image image;
+    public int correctIndex; // ✅ Eklendi
+    public int currentIndex; // ✅ Eklendi
 
-    private static PuzzlePiece selectedPiece = null;
+    public Image image;
+    public static PuzzlePiece selectedPiece;
 
     void Awake()
     {
@@ -19,46 +19,40 @@ public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
     {
         if (selectedPiece == null)
         {
-            // İlk seçilen parça
             selectedPiece = this;
             image.color = Color.yellow;
         }
         else if (selectedPiece == this)
         {
-            // Aynı parçaya iki kez tıklandı → seçimi iptal et
-            image.color = Color.white;
+            selectedPiece.image.color = Color.white;
             selectedPiece = null;
         }
         else
         {
-            // İkinci parça seçildi → takas yap
             SwapWith(selectedPiece);
-            image.color = Color.white;
             selectedPiece.image.color = Color.white;
+            image.color = Color.white;
             selectedPiece = null;
 
-            // Kontrol et
             PuzzleManager.Instance.CheckWin();
         }
     }
 
-    void SwapWith(PuzzlePiece other)
+    public void SwapWith(PuzzlePiece other)
     {
-        // Sprite takası
+        // Görselleri takas et
         Sprite tempSprite = image.sprite;
         image.sprite = other.image.sprite;
         other.image.sprite = tempSprite;
 
-        // ✅ currentIndex takası
-        int temp = currentIndex;
+        // 🔁 Index takası
+        int tempIndex = currentIndex;
         currentIndex = other.currentIndex;
-        other.currentIndex = temp;
-
-        // ❌ correctIndex değişmez!
+        other.currentIndex = tempIndex;
     }
 
     public bool IsInCorrectPosition()
     {
-        return correctIndex == currentIndex;
+        return currentIndex == correctIndex;
     }
 }

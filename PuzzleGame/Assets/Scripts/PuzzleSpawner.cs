@@ -1,19 +1,16 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using System.Collections.Generic;
 
 public class PuzzleSpawner : MonoBehaviour
 {
     public GameObject piecePrefab;
     public Transform puzzleGrid;
 
-    IEnumerator Start()
+    void Start()
     {
-        // UI yerleşimi tamamlanana kadar bekle
-        yield return new WaitForEndOfFrame();
-
-        // Seçilen level'e göre yükleme yap
         LoadLevel(LevelData.selectedLevel);
     }
 
@@ -21,32 +18,52 @@ public class PuzzleSpawner : MonoBehaviour
     {
         ClearExistingPieces();
 
-        // Sprite'ları Resources klasöründen yükle
-        Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle/" + name);
+        // Sprite’ları isim sonundaki sayıya göre sırala
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle/" + name)
+            .OrderBy(s =>
+            {
+                Match match = Regex.Match(s.name, @"_(\d+)$");
+                return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+            })
+            .ToArray();
 
         if (sprites.Length == 0)
         {
-            Debug.LogError("❌ " + name + " yüklenemedi. Sprite dilimlenmiş mi?");
+            Debug.LogError("❌ Sprite yok veya yanlış klasör: Puzzle/" + name);
             return;
         }
 
+        // Shuffle edilmiş sprite'ları tut
         List<Sprite> shuffled = new List<Sprite>(sprites);
         Shuffle(shuffled);
 
-        // Puzzle parçalarını oluştur
         for (int i = 0; i < shuffled.Count; i++)
         {
             GameObject piece = Instantiate(piecePrefab, puzzleGrid);
-            piece.GetComponent<Image>().sprite = shuffled[i];
+            Image img = piece.GetComponent<Image>();
+            img.sprite = shuffled[i];
 
             PuzzlePiece pp = piece.GetComponent<PuzzlePiece>();
-            pp.correctIndex = System.Array.IndexOf(sprites, shuffled[i]);
+
+            string spriteName = shuffled[i].name;
+
+            // 🎯 Doğru sprite'ın orijinal listedeki index'ini bul
+            int correctIndex = System.Array.FindIndex(sprites, s => s.name == spriteName);
+
+            // ✅ Güvenlik: bulunamadıysa logla
+            if (correctIndex == -1)
+            {
+                Debug.LogError($"❗ Sprite adı eşleşmedi: {spriteName}");
+            }
+
+            // 📌 Atamalar
+            pp.correctIndex = correctIndex;
             pp.currentIndex = i;
+
+            Debug.Log($"🧩 {spriteName} - correct: {correctIndex}, current: {i}");
         }
 
         PuzzleManager.Instance.totalPieces = sprites.Length;
-
-        // Grid boyutunu ayarla (taşmaları engellemek için)
         AdjustGridCellSize(sprites.Length);
     }
 
@@ -68,8 +85,7 @@ public class PuzzleSpawner : MonoBehaviour
             Destroy(child.gameObject);
         }
     }
-
-    void AdjustGridCellSize(int pieceCount)
+        void AdjustGridCellSize(int pieceCount)
     {
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(pieceCount)); // 3x3, 4x4, vs.
 

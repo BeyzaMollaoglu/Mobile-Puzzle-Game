@@ -345,6 +345,7 @@ GameObject:
   - component: {fileID: 516915372}
   - component: {fileID: 516915371}
   - component: {fileID: 516915373}
+  - component: {fileID: 516915375}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -365,8 +366,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   totalPieces: 0
-  correctPieces: 0
-  winTextUI: {fileID: 0}
+  winTextUI: {fileID: 339454508}
 --- !u!4 &516915372
 Transform:
   m_ObjectHideFlags: 0
@@ -395,6 +395,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawner: {fileID: 0}
+--- !u!114 &516915375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 516915370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af19831a2dbf8584e8725cb535e4ebe9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  piecePrefab: {fileID: 6929957268676377211, guid: 7bbab159aa7063e44905a89fad3a8e24, type: 3}
+  puzzleGrid: {fileID: 1313528189}
 --- !u!1 &706678376
 GameObject:
   m_ObjectHideFlags: 0
@@ -724,7 +738,6 @@ GameObject:
   - component: {fileID: 1313528193}
   - component: {fileID: 1313528192}
   - component: {fileID: 1313528195}
-  - component: {fileID: 1313528196}
   m_Layer: 5
   m_Name: PuzzleGrid
   m_TagString: Untagged
@@ -813,20 +826,6 @@ MonoBehaviour:
   m_Spacing: {x: 5, y: 5}
   m_Constraint: 0
   m_ConstraintCount: 2
---- !u!114 &1313528196
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1313528188}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af19831a2dbf8584e8725cb535e4ebe9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  piecePrefab: {fileID: 6929957268676377211, guid: 7bbab159aa7063e44905a89fad3a8e24, type: 3}
-  puzzleGrid: {fileID: 1313528189}
 --- !u!1 &1679654338
 GameObject:
   m_ObjectHideFlags: 0

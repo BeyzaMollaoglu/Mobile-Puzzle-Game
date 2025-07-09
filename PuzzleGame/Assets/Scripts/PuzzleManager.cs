@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PuzzleManager : MonoBehaviour
 {
     public static PuzzleManager Instance;
-
     public int totalPieces;
-    public int correctPieces;
-
     public GameObject winTextUI;
 
     void Awake()
@@ -19,30 +17,25 @@ public class PuzzleManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-
     public void CheckWin()
     {
-        var pieces = Object.FindObjectsByType<PuzzlePiece>(FindObjectsSortMode.None);
+        var pieces = UnityEngine.Object.FindObjectsByType<PuzzlePiece>(FindObjectsSortMode.None);
+
         int correctCount = 0;
 
         foreach (var piece in pieces)
         {
-            Debug.Log($"[Kontrol] {piece.name} → correct: {piece.correctIndex}, current: {piece.currentIndex}");
-
-            if (!piece.IsInCorrectPosition())
-            {
-                Debug.Log("🚫 Parça yanlışta.");
-                return;
-            }
-            else
-            {
+            if (piece.currentIndex == piece.correctIndex)
                 correctCount++;
-            }
         }
 
-        Debug.Log($"✅ Tüm parçalar doğru yerde! ({correctCount}/{pieces.Length})");
-        if (winTextUI != null)
-            winTextUI.SetActive(true);
+        Debug.Log($"✅ PuzzleManager: current={pieces.Length}, correct={correctCount}");
+
+        if (correctCount >= pieces.Length)
+        {
+            winTextUI.gameObject.SetActive(true);
+            Debug.Log("🎉 YOU WIN!");
+        }
     }
 
     public void GoBack()
