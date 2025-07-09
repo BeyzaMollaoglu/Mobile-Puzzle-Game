@@ -2,57 +2,51 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+[RequireComponent(typeof(Image))]
 public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
 {
-    public int correctIndex; // ✅ Eklendi
-    public int currentIndex; // ✅ Eklendi
+    [HideInInspector] public int correctIndex; // bu sprite hangi hücrede olmalı
 
-    public Image image;
-    public static PuzzlePiece selectedPiece;
+    private static PuzzlePiece _selected;
+    private Image _img;
 
     void Awake()
     {
-        image = GetComponent<Image>();
+        _img = GetComponent<Image>();
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (selectedPiece == null)
+        // 1) Hiç parça seçili değil → bu parçayı seç
+        if (_selected == null)
         {
-            selectedPiece = this;
-            image.color = Color.yellow;
+            _selected = this;
+            _img.color = Color.yellow;
+            return;
         }
-        else if (selectedPiece == this)
+
+        // 2) Aynı parçaya tıklanırsa seçimi iptal et
+        if (_selected == this)
         {
-            selectedPiece.image.color = Color.white;
-            selectedPiece = null;
+            _selected._img.color = Color.white;
+            _selected = null;
+            return;
         }
-        else
-        {
-            SwapWith(selectedPiece);
-            selectedPiece.image.color = Color.white;
-            image.color = Color.white;
-            selectedPiece = null;
 
-            PuzzleManager.Instance.CheckWin();
-        }
-    }
+        // 3) Farklı bir parça zaten seçili → ikisini yer değiştir
+        int myIndex    = transform.GetSiblingIndex();
+        int otherIndex = _selected.transform.GetSiblingIndex();
 
-    public void SwapWith(PuzzlePiece other)
-    {
-        // Görselleri takas et
-        Sprite tempSprite = image.sprite;
-        image.sprite = other.image.sprite;
-        other.image.sprite = tempSprite;
+        // swap sibling index
+        transform.SetSiblingIndex(otherIndex);
+        _selected.transform.SetSiblingIndex(myIndex);
 
-        // 🔁 Index takası
-        int tempIndex = currentIndex;
-        currentIndex = other.currentIndex;
-        other.currentIndex = tempIndex;
-    }
+        // renkleri temizle
+        _selected._img.color = Color.white;
+        _img.color            = Color.white;
+        _selected             = null;
 
-    public bool IsInCorrectPosition()
-    {
-        return currentIndex == correctIndex;
+        // kazanma kontrolü
+        PuzzleManager.Instance.CheckWin();
     }
 }

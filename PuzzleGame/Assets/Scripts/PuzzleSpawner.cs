@@ -6,104 +6,85 @@ using UnityEngine.UI;
 
 public class PuzzleSpawner : MonoBehaviour
 {
+    [Header("Assign in Inspector")]
     public GameObject piecePrefab;
-    public Transform puzzleGrid;
+    public Transform puzzleGrid; // GridLayoutGroup'lu Panel
 
     void Start()
     {
+        if (string.IsNullOrEmpty(LevelData.selectedLevel))
+        {
+            Debug.LogError("❌ LevelData.selectedLevel boş!");
+            return;
+        }
         LoadLevel(LevelData.selectedLevel);
     }
 
-    public void LoadLevel(string name)
+    public void LoadLevel(string levelName)
     {
-        ClearExistingPieces();
+        // 1) Temizle
+        foreach (Transform c in puzzleGrid) Destroy(c.gameObject);
 
-        // Sprite’ları isim sonundaki sayıya göre sırala
-        Sprite[] sprites = Resources.LoadAll<Sprite>("Puzzle/" + name)
+        // 2) Kaynaktan sırala
+        Sprite[] sprites = Resources
+            .LoadAll<Sprite>("Puzzle/" + levelName)
             .OrderBy(s =>
             {
-                Match match = Regex.Match(s.name, @"_(\d+)$");
-                return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+                var m = Regex.Match(s.name, @"_(\d+)$");
+                return m.Success ? int.Parse(m.Groups[1].Value) : 0;
             })
             .ToArray();
 
         if (sprites.Length == 0)
         {
-            Debug.LogError("❌ Sprite yok veya yanlış klasör: Puzzle/" + name);
+            Debug.LogError($"❌ Puzzle sprite bulunamadı: Puzzle/{levelName}");
             return;
         }
 
-        // Shuffle edilmiş sprite'ları tut
+        // 3) Shuffle
         List<Sprite> shuffled = new List<Sprite>(sprites);
-        Shuffle(shuffled);
-
         for (int i = 0; i < shuffled.Count; i++)
         {
-            GameObject piece = Instantiate(piecePrefab, puzzleGrid);
-            Image img = piece.GetComponent<Image>();
+            int r = Random.Range(i, shuffled.Count);
+            (shuffled[i], shuffled[r]) = (shuffled[r], shuffled[i]);
+        }
+
+        // 4) Instantiate & doğru konum bilgisini ata
+        for (int i = 0; i < shuffled.Count; i++)
+        {
+            var go = Instantiate(piecePrefab, puzzleGrid);
+            go.name = $"Piece_{i}";
+            var img = go.GetComponent<Image>();
             img.sprite = shuffled[i];
+            img.color  = Color.white;
 
-            PuzzlePiece pp = piece.GetComponent<PuzzlePiece>();
-
-            string spriteName = shuffled[i].name;
-
-            // 🎯 Doğru sprite'ın orijinal listedeki index'ini bul
-            int correctIndex = System.Array.FindIndex(sprites, s => s.name == spriteName);
-
-            // ✅ Güvenlik: bulunamadıysa logla
-            if (correctIndex == -1)
-            {
-                Debug.LogError($"❗ Sprite adı eşleşmedi: {spriteName}");
-            }
-
-            // 📌 Atamalar
-            pp.correctIndex = correctIndex;
-            pp.currentIndex = i;
-
-            Debug.Log($"🧩 {spriteName} - correct: {correctIndex}, current: {i}");
+            // bu sprite hangi hücrede olmalı?
+            int correctIdx = System.Array.FindIndex(sprites, s => s.name == shuffled[i].name);
+            var pp = go.GetComponent<PuzzlePiece>();
+            pp.correctIndex = correctIdx;
         }
 
-        PuzzleManager.Instance.totalPieces = sprites.Length;
+        // 5) Hücre boyutlarını ayarla (opsiyonel)
         AdjustGridCellSize(sprites.Length);
+
+        // 6) PuzzleManager'a haber ver
+        PuzzleManager.Instance.totalPieces = sprites.Length;
     }
 
-    void Shuffle(List<Sprite> list)
+    void AdjustGridCellSize(int pieceCount)
     {
-        for (int i = 0; i < list.Count; i++)
-        {
-            Sprite temp = list[i];
-            int rand = Random.Range(i, list.Count);
-            list[i] = list[rand];
-            list[rand] = temp;
-        }
-    }
+        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(pieceCount));
+        var gridRect = puzzleGrid.GetComponent<RectTransform>();
+        var layout   = puzzleGrid.GetComponent<GridLayoutGroup>();
 
-    void ClearExistingPieces()
-    {
-        foreach (Transform child in puzzleGrid)
-        {
-            Destroy(child.gameObject);
-        }
-    }
-        void AdjustGridCellSize(int pieceCount)
-    {
-        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(pieceCount)); // 3x3, 4x4, vs.
+        float padX = layout.padding.left + layout.padding.right;
+        float padY = layout.padding.top  + layout.padding.bottom;
+        float spX  = layout.spacing.x * (gridSize - 1);
+        float spY  = layout.spacing.y * (gridSize - 1);
 
-        RectTransform gridRect = puzzleGrid.GetComponent<RectTransform>();
-        GridLayoutGroup layout = puzzleGrid.GetComponent<GridLayoutGroup>();
+        float availW = gridRect.rect.width  - padX - spX;
+        float availH = gridRect.rect.height - padY - spY;
 
-        float totalPaddingX = layout.padding.left + layout.padding.right;
-        float totalPaddingY = layout.padding.top + layout.padding.bottom;
-
-        float totalSpacingX = layout.spacing.x * (gridSize - 1);
-        float totalSpacingY = layout.spacing.y * (gridSize - 1);
-
-        float availableWidth = gridRect.rect.width - totalPaddingX - totalSpacingX;
-        float availableHeight = gridRect.rect.height - totalPaddingY - totalSpacingY;
-
-        float cellWidth = availableWidth / gridSize;
-        float cellHeight = availableHeight / gridSize;
-
-        layout.cellSize = new Vector2(cellWidth, cellHeight);
+        layout.cellSize = new Vector2(availW / gridSize, availH / gridSize);
     }
 }

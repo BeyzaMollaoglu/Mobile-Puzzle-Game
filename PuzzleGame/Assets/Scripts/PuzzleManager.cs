@@ -1,43 +1,49 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using System.Collections;
 
 public class PuzzleManager : MonoBehaviour
 {
     public static PuzzleManager Instance;
-    public int totalPieces;
-    public GameObject winTextUI;
+
+    [HideInInspector] public int totalPieces;
+    public GameObject winTextUI; // inspector’dan birbirine bağla
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    void Start()
+    {
+        if (winTextUI != null)
+            winTextUI.SetActive(false);
     }
 
     public void CheckWin()
     {
-        var pieces = UnityEngine.Object.FindObjectsByType<PuzzlePiece>(FindObjectsSortMode.None);
-
+        var pieces = FindObjectsOfType<PuzzlePiece>();
         int correctCount = 0;
 
-        foreach (var piece in pieces)
+        foreach (var p in pieces)
         {
-            if (piece.currentIndex == piece.correctIndex)
+            // child‐index = parça şu anda hangi hücrede?
+            if (p.transform.GetSiblingIndex() == p.correctIndex)
                 correctCount++;
         }
 
-        Debug.Log($"✅ PuzzleManager: current={pieces.Length}, correct={correctCount}");
+        Debug.Log($"✅ PuzzleManager: doğru={correctCount}, toplam={totalPieces}");
 
-        if (correctCount >= pieces.Length)
+        if (correctCount >= totalPieces)
         {
-            winTextUI.gameObject.SetActive(true);
+            if (winTextUI != null)
+                winTextUI.SetActive(true);
+
             Debug.Log("🎉 YOU WIN!");
         }
     }
 
+    // İstersen ana menü butonuna bağla
     public void GoBack()
     {
         SceneManager.LoadScene("MainScene");
