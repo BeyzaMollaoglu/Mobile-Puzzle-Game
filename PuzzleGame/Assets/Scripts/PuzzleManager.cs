@@ -6,10 +6,22 @@ public class PuzzleManager : MonoBehaviour
     public static PuzzleManager Instance;
 
     [HideInInspector] public int totalPieces;
-    public GameObject winTextUI; // inspector’dan birbirine bağla
-    public GameObject nextLevelButtonUI; // inspector
-    [Tooltip("Level adlarını sırayla buraya yazın (Resources/Puzzle klasöründeki alt klasör adları)")]
-    public string[] levelNames = {"level1", "level2", "level3"}; 
+
+    [Header("UI References")]
+    public GameObject winTextUI;            // Inspector’dan atanır
+    public GameObject nextLevelButtonUI;    // Inspector’dan atanır
+
+    [Header("Level List")]
+    [Tooltip("Resources/Puzzle altındaki klasör adlarını sırayla buraya yaz.")]
+    public string[] levelNames = {
+        "level1", "level2", "level3", "level4", "level5",
+        "level6", "level7", "level8", "level9", "level10",
+        "level11", "level12", "level13", "level14", "level15",
+        "level16", "level17", "level18", "level19", "level20",
+        "level21", "level22", "level23", "level24", "level25",
+        "level26", "level27", "level28", "level29", "level30"
+    };
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -20,7 +32,7 @@ public class PuzzleManager : MonoBehaviour
     {
         if (winTextUI != null)
             winTextUI.SetActive(false);
-        if (nextLevelButtonUI != null)    
+        if (nextLevelButtonUI != null)
             nextLevelButtonUI.SetActive(false);
     }
 
@@ -31,7 +43,6 @@ public class PuzzleManager : MonoBehaviour
 
         foreach (var p in pieces)
         {
-            // child‐index = parça şu anda hangi hücrede?
             if (p.transform.GetSiblingIndex() == p.correctIndex)
                 correctCount++;
         }
@@ -40,35 +51,39 @@ public class PuzzleManager : MonoBehaviour
 
         if (correctCount >= totalPieces)
         {
-            if (winTextUI != null){
+            if (winTextUI != null)
                 winTextUI.SetActive(true);
-            }
-                
-        
-            nextLevelButtonUI.SetActive(true);
+
+            if (nextLevelButtonUI != null)
+                nextLevelButtonUI.SetActive(true);
+
             Debug.Log("🎉 YOU WIN!");
         }
     }
+
     public void NextLevel()
     {
         string current = LevelData.selectedLevel;
         int idx = System.Array.IndexOf(levelNames, current);
+        Debug.Log($"{levelNames.Length}");
+        Debug.Log($"▶️ Mevcut level: {current}, index: {idx}");
 
-        // Eğer bulundu ve bir sonraki varsa
-        if (idx != -1 && idx < levelNames.Length - 1)
+        if (idx >= 0 && idx < levelNames.Length - 1)
         {
-            LevelData.selectedLevel = levelNames[idx + 1];
-            // Aynı sahneyi yeniden yükle (PuzzleSpawner Start’da yeni level’i okuyacak)
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            string next = levelNames[idx + 1];
+            LevelData.selectedLevel = next;
+
+            Debug.Log($"➡️ Yükleniyor: {next}");
+            SceneManager.LoadScene("PuzzleScene");
         }
         else
         {
-            Debug.Log("⚠️ Son leveldesiniz ya da levelNames dizisi hatalı.");
-            // İstersen MainScene’e dön:
+            Debug.Log("🏁 Son level'e ulaşıldı veya level bulunamadı.");
+            // İstersen buradan ana menüye dönebilirsin:
             // SceneManager.LoadScene("MainScene");
         }
     }
-    // İstersen ana menü butonuna bağla
+
     public void GoBack()
     {
         SceneManager.LoadScene("MainScene");
