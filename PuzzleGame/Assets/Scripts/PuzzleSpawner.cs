@@ -8,7 +8,7 @@ public class PuzzleSpawner : MonoBehaviour
 {
     [Header("Assign in Inspector")]
     public GameObject piecePrefab;
-    public Transform puzzleGrid; // GridLayoutGroup'lu Panel
+    public Transform puzzleGrid;
 
     void Start()
     {
@@ -22,10 +22,8 @@ public class PuzzleSpawner : MonoBehaviour
 
     public void LoadLevel(string levelName)
     {
-        // 1) Temizle
         foreach (Transform c in puzzleGrid) Destroy(c.gameObject);
 
-        // 2) Kaynaktan sırala
         Sprite[] sprites = Resources
             .LoadAll<Sprite>("Puzzle/" + levelName)
             .OrderBy(s =>
@@ -41,7 +39,6 @@ public class PuzzleSpawner : MonoBehaviour
             return;
         }
 
-        // 3) Shuffle
         List<Sprite> shuffled = new List<Sprite>(sprites);
         for (int i = 0; i < shuffled.Count; i++)
         {
@@ -49,40 +46,50 @@ public class PuzzleSpawner : MonoBehaviour
             (shuffled[i], shuffled[r]) = (shuffled[r], shuffled[i]);
         }
 
-        // 4) Instantiate & doğru konum bilgisini ata
         for (int i = 0; i < shuffled.Count; i++)
         {
             var go = Instantiate(piecePrefab, puzzleGrid);
             go.name = $"Piece_{i}";
             var img = go.GetComponent<Image>();
             img.sprite = shuffled[i];
-            img.color  = Color.white;
+            img.color = Color.white;
 
-            // bu sprite hangi hücrede olmalı?
             int correctIdx = System.Array.FindIndex(sprites, s => s.name == shuffled[i].name);
             var pp = go.GetComponent<PuzzlePiece>();
             pp.correctIndex = correctIdx;
         }
 
-        // 5) Hücre boyutlarını ayarla (opsiyonel)
         AdjustGridCellSize(sprites.Length);
 
-        // 6) PuzzleManager'a haber ver
         PuzzleManager.Instance.totalPieces = sprites.Length;
+
+ if (PuzzleManager.Instance != null && PuzzleManager.Instance.originalImage != null)
+{
+    Sprite fullImage = Resources.Load<Sprite>("FullPuzzleImages/" + levelName);
+    if (fullImage != null)
+    {
+        PuzzleManager.Instance.originalImage.sprite = fullImage;
+        Debug.Log("✅ Loaded full image for: " + levelName);
+    }
+    else
+    {
+        Debug.LogWarning("❌ Full image not found at Resources/FullPuzzleImages/" + levelName);
+    }
+}
     }
 
     void AdjustGridCellSize(int pieceCount)
     {
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(pieceCount));
         var gridRect = puzzleGrid.GetComponent<RectTransform>();
-        var layout   = puzzleGrid.GetComponent<GridLayoutGroup>();
+        var layout = puzzleGrid.GetComponent<GridLayoutGroup>();
 
         float padX = layout.padding.left + layout.padding.right;
-        float padY = layout.padding.top  + layout.padding.bottom;
-        float spX  = layout.spacing.x * (gridSize - 1);
-        float spY  = layout.spacing.y * (gridSize - 1);
+        float padY = layout.padding.top + layout.padding.bottom;
+        float spX = layout.spacing.x * (gridSize - 1);
+        float spY = layout.spacing.y * (gridSize - 1);
 
-        float availW = gridRect.rect.width  - padX - spX;
+        float availW = gridRect.rect.width - padX - spX;
         float availH = gridRect.rect.height - padY - spY;
 
         layout.cellSize = new Vector2(availW / gridSize, availH / gridSize);

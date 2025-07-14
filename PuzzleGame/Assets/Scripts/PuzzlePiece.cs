@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Image))]
 public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
 {
-    [HideInInspector] public int correctIndex; // bu sprite hangi hücrede olmalı
+    [HideInInspector] public int correctIndex;
 
     private static PuzzlePiece _selected;
     private Image _img;
@@ -17,7 +17,6 @@ public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // 1) Hiç parça seçili değil → bu parçayı seç
         if (_selected == null)
         {
             _selected = this;
@@ -25,7 +24,6 @@ public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        // 2) Aynı parçaya tıklanırsa seçimi iptal et
         if (_selected == this)
         {
             _selected._img.color = Color.white;
@@ -33,20 +31,16 @@ public class PuzzlePiece : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        // 3) Farklı bir parça zaten seçili → ikisini yer değiştir
-        int myIndex    = transform.GetSiblingIndex();
+        int myIndex = transform.GetSiblingIndex();
         int otherIndex = _selected.transform.GetSiblingIndex();
 
-        // swap sibling index
         transform.SetSiblingIndex(otherIndex);
         _selected.transform.SetSiblingIndex(myIndex);
 
-        // renkleri temizle
         _selected._img.color = Color.white;
-        _img.color            = Color.white;
-        _selected             = null;
+        _img.color = Color.white;
+        _selected = null;
 
-        // kazanma kontrolü
         PuzzleManager.Instance.CheckWin();
     }
 }

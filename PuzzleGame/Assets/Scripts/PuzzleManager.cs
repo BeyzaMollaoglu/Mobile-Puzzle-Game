@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PuzzleManager : MonoBehaviour
 {
@@ -8,8 +9,12 @@ public class PuzzleManager : MonoBehaviour
     [HideInInspector] public int totalPieces;
 
     [Header("UI References")]
-    public GameObject winTextUI;            // Inspector’dan atanır
-    public GameObject nextLevelButtonUI;    // Inspector’dan atanır
+    public GameObject winTextUI;
+    public GameObject nextLevelButtonUI;
+
+    [Header("Original Preview")]
+    public GameObject originalPreviewPanel;
+    public Image originalImage;
 
     [Header("Level List")]
     [Tooltip("Resources/Puzzle altındaki klasör adlarını sırayla buraya yaz.")]
@@ -30,10 +35,13 @@ public class PuzzleManager : MonoBehaviour
 
     void Start()
     {
-        if (winTextUI != null)
-            winTextUI.SetActive(false);
-        if (nextLevelButtonUI != null)
-            nextLevelButtonUI.SetActive(false);
+        if (winTextUI != null) winTextUI.SetActive(false);
+        if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(false);
+        if (originalPreviewPanel != null) originalPreviewPanel.SetActive(false);
+
+        // DEBUG: log initial state
+        if (originalImage != null)
+            Debug.Log($"🖼️ OriginalImage.sprite: {(originalImage.sprite != null ? originalImage.sprite.name : "null")}");
     }
 
     public void CheckWin()
@@ -51,12 +59,8 @@ public class PuzzleManager : MonoBehaviour
 
         if (correctCount >= totalPieces)
         {
-            if (winTextUI != null)
-                winTextUI.SetActive(true);
-
-            if (nextLevelButtonUI != null)
-                nextLevelButtonUI.SetActive(true);
-
+            if (winTextUI != null) winTextUI.SetActive(true);
+            if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(true);
             Debug.Log("🎉 YOU WIN!");
         }
     }
@@ -79,8 +83,6 @@ public class PuzzleManager : MonoBehaviour
         else
         {
             Debug.Log("🏁 Son level'e ulaşıldı veya level bulunamadı.");
-            // İstersen buradan ana menüye dönebilirsin:
-            // SceneManager.LoadScene("MainScene");
         }
     }
 
@@ -88,4 +90,29 @@ public class PuzzleManager : MonoBehaviour
     {
         SceneManager.LoadScene("MainScene");
     }
+
+    public void ToggleOriginalPreview()
+{
+    if (originalPreviewPanel == null || originalImage == null) return;
+
+    bool isActive = originalPreviewPanel.activeSelf;
+    originalPreviewPanel.SetActive(!isActive);
+
+    if (!isActive)
+    {
+        originalImage.enabled = true;
+        originalImage.color = Color.white;
+
+        if (originalImage.sprite != null)
+            Debug.Log("🖼️ Original preview sprite: " + originalImage.sprite.name);
+        else
+            Debug.LogWarning("⚠️ originalImage.sprite is still NULL");
+    }
+    else
+    {
+        // hiding
+        originalImage.gameObject.SetActive(false); // ✅ hide the image
+    }
+}
+
 }
