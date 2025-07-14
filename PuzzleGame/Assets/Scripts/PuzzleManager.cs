@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PuzzleManager : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class PuzzleManager : MonoBehaviour
     public Image originalImage;
     public GameObject winPagePanel;
     public Image previewImageUI;
+
+    [Header("Puzzle Grid")]
+    public GridLayoutGroup puzzleGridLayout;  // ← assign this from Inspector
 
     [Header("Level List")]
     [Tooltip("Resources/Puzzle altındaki klasör adlarını sırayla buraya yaz.")]
@@ -41,7 +45,6 @@ public class PuzzleManager : MonoBehaviour
         if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(false);
         if (originalPreviewPanel != null) originalPreviewPanel.SetActive(false);
 
-        // DEBUG: log initial state
         if (originalImage != null)
             Debug.Log($"🖼️ OriginalImage.sprite: {(originalImage.sprite != null ? originalImage.sprite.name : "null")}");
     }
@@ -61,11 +64,43 @@ public class PuzzleManager : MonoBehaviour
 
         if (correctCount >= totalPieces)
         {
-            if (winPagePanel != null) winPagePanel.SetActive(true);
-            previewImageUI.sprite = originalImage.sprite;
-            if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(true);
-            Debug.Log("🎉 YOU WIN!");
+            StartCoroutine(ShowWinPanelAfterDelay());
         }
+    }
+
+    private IEnumerator ShowWinPanelAfterDelay()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        // 🎯 Animate grid spacing collapse (clean visual)
+        if (puzzleGridLayout != null)
+        {
+            Vector2 originalSpacing = puzzleGridLayout.spacing;
+            float duration = 0.3f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                puzzleGridLayout.spacing = Vector2.Lerp(originalSpacing, Vector2.zero, t);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            puzzleGridLayout.spacing = Vector2.zero;
+        }
+
+        // Delay before showing win panel
+        yield return new WaitForSeconds(1.0f);
+
+        if (winPagePanel != null) winPagePanel.SetActive(true);
+
+        if (previewImageUI != null && originalImage != null)
+            previewImageUI.sprite = originalImage.sprite;
+
+        if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(true);
+
+        Debug.Log("🎉 YOU WIN!");
     }
 
     public void NextLevel()
@@ -79,7 +114,6 @@ public class PuzzleManager : MonoBehaviour
         {
             string next = levelNames[idx + 1];
             LevelData.selectedLevel = next;
-
             Debug.Log($"➡️ Yükleniyor: {next}");
             SceneManager.LoadScene("PuzzleScene");
         }
@@ -94,6 +128,11 @@ public class PuzzleManager : MonoBehaviour
         SceneManager.LoadScene("MainScene");
     }
 
+    public void RestartPuzzle()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     public void ToggleOriginalPreview()
     {
         if (originalPreviewPanel == null || originalImage == null) return;
@@ -103,25 +142,14 @@ public class PuzzleManager : MonoBehaviour
 
         if (!isActive)
         {
-            originalImage.enabled = true;
+            originalImage.gameObject.SetActive(true);
             originalImage.color = Color.white;
-
             if (originalImage.sprite != null)
                 Debug.Log("🖼️ Original preview sprite: " + originalImage.sprite.name);
-            else
-                Debug.LogWarning("⚠️ originalImage.sprite is still NULL");
         }
         else
         {
-            // hiding
-            originalImage.gameObject.SetActive(false); // ✅ hide the image
+            originalImage.gameObject.SetActive(false);
         }
     }
-
-    public void RestartPuzzle()
-    {
-        Scene currentScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(currentScene.name);
-    }
-
 }
