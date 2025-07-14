@@ -1,11 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelController : MonoBehaviour
 {
     public PuzzleSpawner spawner;
 
-    public void LoadLevel2()
+    public void LevelButton()
     {
-        spawner.LoadLevel("level2");
+        SceneManager.LoadScene("LevelScene");
     }
 }

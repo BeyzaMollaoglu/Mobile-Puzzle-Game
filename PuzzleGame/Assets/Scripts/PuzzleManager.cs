@@ -15,6 +15,8 @@ public class PuzzleManager : MonoBehaviour
     [Header("Original Preview")]
     public GameObject originalPreviewPanel;
     public Image originalImage;
+    public GameObject winPagePanel;
+    public Image previewImageUI;
 
     [Header("Level List")]
     [Tooltip("Resources/Puzzle altındaki klasör adlarını sırayla buraya yaz.")]
@@ -59,7 +61,8 @@ public class PuzzleManager : MonoBehaviour
 
         if (correctCount >= totalPieces)
         {
-            if (winTextUI != null) winTextUI.SetActive(true);
+            if (winPagePanel != null) winPagePanel.SetActive(true);
+            previewImageUI.sprite = originalImage.sprite;
             if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(true);
             Debug.Log("🎉 YOU WIN!");
         }
@@ -92,27 +95,33 @@ public class PuzzleManager : MonoBehaviour
     }
 
     public void ToggleOriginalPreview()
-{
-    if (originalPreviewPanel == null || originalImage == null) return;
-
-    bool isActive = originalPreviewPanel.activeSelf;
-    originalPreviewPanel.SetActive(!isActive);
-
-    if (!isActive)
     {
-        originalImage.enabled = true;
-        originalImage.color = Color.white;
+        if (originalPreviewPanel == null || originalImage == null) return;
 
-        if (originalImage.sprite != null)
-            Debug.Log("🖼️ Original preview sprite: " + originalImage.sprite.name);
+        bool isActive = originalPreviewPanel.activeSelf;
+        originalPreviewPanel.SetActive(!isActive);
+
+        if (!isActive)
+        {
+            originalImage.enabled = true;
+            originalImage.color = Color.white;
+
+            if (originalImage.sprite != null)
+                Debug.Log("🖼️ Original preview sprite: " + originalImage.sprite.name);
+            else
+                Debug.LogWarning("⚠️ originalImage.sprite is still NULL");
+        }
         else
-            Debug.LogWarning("⚠️ originalImage.sprite is still NULL");
+        {
+            // hiding
+            originalImage.gameObject.SetActive(false); // ✅ hide the image
+        }
     }
-    else
+
+    public void RestartPuzzle()
     {
-        // hiding
-        originalImage.gameObject.SetActive(false); // ✅ hide the image
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
     }
-}
 
 }
