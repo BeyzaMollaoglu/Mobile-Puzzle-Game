@@ -1815,6 +1815,7 @@ GameObject:
   - component: {fileID: 748367166}
   - component: {fileID: 748367167}
   - component: {fileID: 748367168}
+  - component: {fileID: 748367169}
   m_Layer: 0
   m_Name: LevelSelectManager
   m_TagString: Untagged
@@ -1926,6 +1927,23 @@ MonoBehaviour:
   - level28
   - level29
   - level30
+--- !u!114 &748367169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748367164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b37074b89b0f6dc40b72de2c1f2e9ab9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  storyButtons:
+  - {fileID: 1843291840}
+  - {fileID: 751925184}
+  - {fileID: 1835871550}
+  lockedAlpha: 0.5
 --- !u!1 &751925182
 GameObject:
   m_ObjectHideFlags: 0

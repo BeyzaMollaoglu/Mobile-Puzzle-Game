@@ -4,10 +4,10 @@ using TMPro;
 
 public class StoryLevelUIManager : MonoBehaviour
 {
-    public GameObject storyPanel;              // İçinde Story 1, 2, 3 butonları var
-    public GameObject levelPanel;              // İçinde 10 level butonu var
-    public TMP_Text storyTitleText;            // Üstte “Story 1” gibi yazar
-    public Button[] levelButtons;              // 10 buton
+    public GameObject storyPanel;
+    public GameObject levelPanel;
+    public TMP_Text storyTitleText;
+    public Button[] levelButtons; 
 
     private int currentStoryIndex;
 
@@ -18,19 +18,39 @@ public class StoryLevelUIManager : MonoBehaviour
         storyPanel.SetActive(false);
         levelPanel.SetActive(true);
 
-        int baseLevel = storyIndex * 10 + 1;
+        int levelsPerStory = levelButtons.Length;
+        int baseLevel = storyIndex * levelsPerStory + 1;
         storyTitleText.text = $"Story {storyIndex + 1}";
+
+        // Kaçıncı level’e kadar açılmış?
+        int unlockedLevel = PlayerPrefs.GetInt("UnlockedLevel", 1);
 
         for (int i = 0; i < levelButtons.Length; i++)
         {
             int levelNumber = baseLevel + i;
-            levelButtons[i].GetComponentInChildren<TMP_Text>().text = levelNumber.ToString();
+            Button btn = levelButtons[i];
+            TMP_Text txt = btn.GetComponentInChildren<TMP_Text>();
+            txt.text = levelNumber.ToString();
 
-            levelButtons[i].onClick.RemoveAllListeners();
-            levelButtons[i].onClick.AddListener(() =>
+            // kilit açık mı?
+            bool isUnlocked = levelNumber <= unlockedLevel;
+            btn.interactable = isUnlocked;
+            txt.color        = isUnlocked
+                               ? Color.white 
+                               : Color.gray;
+
+            // önce tüm listener’ları temizle
+            btn.onClick.RemoveAllListeners();
+            if (isUnlocked)
             {
-                FindObjectOfType<LevelMenu>().LoadLevelByNumber(levelNumber);
-            });
+                // local capture için yeni değişken
+                int lvl = levelNumber;
+                btn.onClick.AddListener(() =>
+                {
+                    FindObjectOfType<LevelMenu>()
+                        .LoadLevelByNumber(lvl);
+                });
+            }
         }
     }
 

@@ -107,14 +107,26 @@ public class PuzzleManager : MonoBehaviour
     {
         string current = LevelData.selectedLevel;
         int idx = System.Array.IndexOf(levelNames, current);
-        Debug.Log($"{levelNames.Length}");
-        Debug.Log($"▶️ Mevcut level: {current}, index: {idx}");
 
         if (idx >= 0 && idx < levelNames.Length - 1)
         {
+            // 1) Mevcut level numarasını bul (level1 için 1, level2 için 2, vb.)
+            int currentLevelNumber = idx + 1;
+
+            // 2) Kaçıncı level’e kadar açılmış (default=1)
+            int unlocked = PlayerPrefs.GetInt("UnlockedLevel", 1);
+
+            // 3) Eğer bu level, daha önce açılanın eşi ya da üzerindeyse,
+            //    PlayerPrefs’e bir sonraki level’i yaz
+            if (currentLevelNumber >= unlocked)
+            {
+                PlayerPrefs.SetInt("UnlockedLevel", currentLevelNumber + 1);
+                PlayerPrefs.Save();
+            }
+
+            // 4) Sonraki level’e geç
             string next = levelNames[idx + 1];
             LevelData.selectedLevel = next;
-            Debug.Log($"➡️ Yükleniyor: {next}");
             SceneManager.LoadScene("PuzzleScene");
         }
         else
