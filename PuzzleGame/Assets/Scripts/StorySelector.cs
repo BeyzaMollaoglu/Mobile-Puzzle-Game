@@ -3,11 +3,10 @@ using UnityEngine.UI;
 
 public class StorySelector : MonoBehaviour
 {
-    [Header("UI References")]
-    public Button[] storyButtons;      // 1, 2, 3. story ikonları
-    [Range(0,1)] public float lockedAlpha = 0.5f;  // kilitliyi ne kadar soluk gösterelim
+    public Button[] storyButtons;
+    public float lockedAlpha = 0.5f;  // isteğe bağlı, eğer istersen arkayı az da olsa soluk tutarsın
 
-    const int levelsPerStory = 10;   // her hikayede 10 level
+    const int levelsPerStory = 10;
 
     void Start()
     {
@@ -20,22 +19,31 @@ public class StorySelector : MonoBehaviour
 
         for (int i = 0; i < storyButtons.Length; i++)
         {
-            // hikaye i, kapsadığı level numaraları: (i*10+1) … (i*10+10)
-            int firstLevelOfThisStory = i * levelsPerStory + 1;
-            bool isUnlocked = unlockedLevel >= firstLevelOfThisStory;
+            var btn = storyButtons[i];
+            int firstLvl = i * levelsPerStory + 1;
+            bool isUnlocked = unlockedLevel >= firstLvl;
 
-            // tıklanabilirlik
-            storyButtons[i].interactable = isUnlocked;
+            btn.interactable = isUnlocked;
 
-            // solukluk (butonun Image component’inden)
-            var img = storyButtons[i].GetComponent<Image>();
-            Color c = img.color;
-            c.a = isUnlocked ? 1f : lockedAlpha;
-            img.color = c;
+            // 1) LockIcon'u aç/kapa
+            var lockIcon = btn.transform.Find("LockIcon");
+            if (lockIcon != null)
+                lockIcon.gameObject.SetActive(!isUnlocked);
 
-            // eğer child olarak ayrı bir “LockIcon” varsa:
-            // var lockIcon = storyButtons[i].transform.Find("LockIcon");
-            // if (lockIcon != null) lockIcon.gameObject.SetActive(!isUnlocked);
+            // 2) Butonun altındaki tüm Image komponentlerini bul
+            var images = btn.GetComponentsInChildren<Image>(true);
+
+            foreach (var img in images)
+            {
+                // kilit ikonu değilse (LockIcon adını kullanıyoruz)
+                if (img.gameObject.name == "LockIcon")  
+                    continue;
+
+                // img: bu ya arka planın ya da içerikteki hayvan resminin Image'ı
+                var c = img.color;
+                c.a = isUnlocked ? 1f : lockedAlpha;
+                img.color = c;
+            }
         }
     }
 }
