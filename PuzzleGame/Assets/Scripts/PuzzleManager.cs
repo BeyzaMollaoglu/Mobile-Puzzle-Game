@@ -70,6 +70,7 @@ public class PuzzleManager : MonoBehaviour
 
     private IEnumerator ShowWinPanelAfterDelay()
     {
+        // Küçük bir gecikme vererek önce grid spacing animasyonunu oynatıyoruz
         yield return new WaitForSeconds(0.2f);
 
         // 🎯 Animate grid spacing collapse (clean visual)
@@ -90,19 +91,42 @@ public class PuzzleManager : MonoBehaviour
             puzzleGridLayout.spacing = Vector2.zero;
         }
 
-        // Delay before showing win panel
+        // Win Page gösterilmeden önce 1 saniye daha bekle
         yield return new WaitForSeconds(1.0f);
 
-        if (winPagePanel != null) winPagePanel.SetActive(true);
+        // ─── Yeni eklenecek kilit açma kodu ────────────────────
+        // Mevcut level adını ve index'ini bul
+        string current = LevelData.selectedLevel;
+        int idx = System.Array.IndexOf(levelNames, current);
 
+        // Eğer bir sonraki level varsa ve henüz kilitli ise aç
+        if (idx >= 0 && idx < levelNames.Length - 1)
+        {
+            int currentLevelNumber = idx + 1;  // level1 -> 1, level2 -> 2, vb.
+            int unlocked = PlayerPrefs.GetInt("UnlockedLevel", 1);
+
+            if (currentLevelNumber >= unlocked)
+            {
+                PlayerPrefs.SetInt("UnlockedLevel", currentLevelNumber + 1);
+                PlayerPrefs.Save();
+            }
+        }
+        // ─────────────────────────────────────────────────────
+
+        // Win Page’i aktive et
+        if (winPagePanel != null)
+            winPagePanel.SetActive(true);
+
+        // Orijinal önizlemeyi güncelle (varsa)
         if (previewImageUI != null && originalImage != null)
             previewImageUI.sprite = originalImage.sprite;
 
-        if (nextLevelButtonUI != null) nextLevelButtonUI.SetActive(true);
+        // “Next Level” butonunu aç
+        if (nextLevelButtonUI != null)
+            nextLevelButtonUI.SetActive(true);
 
         Debug.Log("🎉 YOU WIN!");
     }
-
     public void NextLevel()
     {
         string current = LevelData.selectedLevel;
