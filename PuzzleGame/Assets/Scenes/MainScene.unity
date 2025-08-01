@@ -241,6 +241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playButtonAnimator: {fileID: 1298582059}
+  playButtonText: {fileID: 0}
 --- !u!4 &361805055
 Transform:
   m_ObjectHideFlags: 0
@@ -1412,6 +1413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playButtonAnimator: {fileID: 0}
+  playButtonText: {fileID: 0}
 --- !u!1 &2101444897
 GameObject:
   m_ObjectHideFlags: 0
